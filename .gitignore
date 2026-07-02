@@ -1,0 +1,13 @@
+# runtime state (created by the tools, never committed)
+state/
+logs/
+config/agent_ops.json
+
+# python
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+
+# os
+.DS_Store

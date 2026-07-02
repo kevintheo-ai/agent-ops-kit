@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "mode": "shadow",
+  "alerts_path": "state/alerts.jsonl",
+  "approvals_dir": "state/approvals",
+  "carve_out_paths": ["config/", "scripts/", "skills/"],
+  "jobs": [
+    {
+      "name": "nightly-export",
+      "heartbeat": "state/heartbeats/nightly-export.json",
+      "max_age_hours": 26
+    },
+    {
+      "name": "weekly-report",
+      "heartbeat": "state/heartbeats/weekly-report.json",
+      "max_age_hours": 192
+    }
+  ]
+}

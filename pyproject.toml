@@ -1,0 +1,11 @@
+[project]
+name = "agent-ops-kit"
+version = "0.1.0"
+description = "Operational guardrails for headless LLM agent loops: heartbeat watchdog, LLM-free precheck gate, heal-loop template, staged-autonomy playbook."
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
