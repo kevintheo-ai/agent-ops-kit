@@ -41,7 +41,7 @@ no framework. Copy the pieces you want.
 ## Quickstart
 
 ```bash
-git clone [LINK: repo] && cd agent-ops-kit
+git clone https://github.com/kevintheo-ai/agent-ops-kit && cd agent-ops-kit
 cp config/agent_ops.example.json config/agent_ops.json
 
 # 1. Your scheduled jobs touch a heartbeat file on success. The watchdog
@@ -92,4 +92,4 @@ Not a framework, not a product, not affiliated with any model vendor. It's
 the scaffold I wish I'd had on day one, published as-is under MIT. Issues
 and war stories welcome.
 
-— Kevin Theo ([LINK: linkedin] · [LINK: case study])
+— Kevin Theo ([LinkedIn](https://www.linkedin.com/in/kevin-theobald-7946871a2) · [LINK: case study])
