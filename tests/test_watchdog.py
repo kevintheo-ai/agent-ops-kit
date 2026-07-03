@@ -1,9 +1,12 @@
 """Tests for scripts/watchdog.py (loaded by file path — scripts/ is not a package)."""
 
+import fcntl
 import importlib.util
 import json
 import os
 import pathlib
+
+import pytest
 
 SCRIPTS = pathlib.Path(__file__).resolve().parents[1] / "scripts"
 
@@ -107,3 +110,14 @@ def test_resolve_marks_resolved_atomically(tmp_path, capsys):
     assert len(recs) == 1
     assert recs[0]["resolved"] is True
     assert watchdog.unresolved_fingerprints(recs) == set()
+
+
+def test_locked_is_exclusive_across_append_and_resolve(tmp_path):
+    """codex-scan QF7 regression: append_alert() and resolve_fingerprint()
+    share one lock file, so a second holder can never acquire it concurrently
+    — the property that prevents the lost-update race (an append landing
+    between resolve's read and its atomic replace)."""
+    alerts_path = str(tmp_path / "state" / "alerts.jsonl")
+    with watchdog._locked(alerts_path), open(alerts_path + ".lock", "a") as second_fh:
+        with pytest.raises(BlockingIOError):
+            fcntl.flock(second_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)

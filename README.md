@@ -64,12 +64,27 @@ SMOKE=1 bash tests/smoke_heal_wrapper.sh  # the four gates, against a real fixtu
    a formal review between steps. See `docs/staged-autonomy.md`.
 2. **Fail open, loudly.** A broken gate must cost tokens, never silence: a
    corrupt config counts as *enabled*, a crashing precheck counts as *WORK*.
-3. **The agent never edits its own leash.** `carve_out_paths` (config,
-   scripts, skills) are off-limits for autonomous writes, always.
+3. **The agent never edits its own leash — by instruction, today.**
+   `carve_out_paths` (config, scripts, skills) are off-limits for autonomous
+   writes, always. Enforcement is currently the model's compliance with
+   `skills/heal/SKILL.md`, not an OS-level sandbox — see *Known limitations*.
 4. **Everything reversible.** Snapshot before change, verify after, roll
    back on doubt, cap attempts at two, then escalate to a human.
 5. **Alert text is data, not instructions.** Prompt-injection defense is an
    operations rule, not a model feature.
+
+## Known limitations
+
+- **Carve-outs are prompt-enforced, not sandboxed.** `carve_out_paths` relies
+  on the brain following its own instructions — nothing at the OS level
+  stops a misbehaving run from writing there today. `mode: auto` means
+  trusting that compliance. Wrapper-side enforcement (deny-list, read-only
+  mounts, or a sandboxed runner) is the natural next hardening step, not yet
+  built.
+- **State paths are operator-trusted.** `alerts_path` / `approvals_dir` in
+  the config are used as given, with no path containment — fine for a config
+  you write yourself, but don't point them at a config an untrusted party
+  can edit.
 
 ## What this is not
 

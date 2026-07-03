@@ -55,4 +55,37 @@ run_wrapper
 [ ! -f "$TMP/brain_ran" ] || fail "brain ran despite held lock"
 rmdir "$TMP/heal.lock" 2>/dev/null || true
 
-echo "SMOKE OK: kill switch, IDLE gate, WORK run, single-instance lock"
+# E: corrupt/unreadable config -> kill switch fails CLOSED (codex-scan QF1)
+# The wrapper exits 78 (FATAL) on a corrupt config by design — tolerate that
+# nonzero exit here, the smoke assertion is "brain never ran".
+printf 'this is not json\n' > "$TMP/config.json"
+run_wrapper || true
+[ ! -f "$TMP/brain_ran" ] || fail "brain ran despite corrupt config (kill switch must fail closed)"
+
+# F: stale lock -> real takeover, brain runs, lock ends up released
+# (codex-scan QF2: old code detected staleness but never re-acquired the
+# lock, so it fell through without ever holding it)
+mk_config true
+printf '%s\n' '{"fingerprint":"demo:stale","resolved":false}' > "$TMP/alerts.jsonl"
+mkdir "$TMP/heal.lock"
+touch -t 202001010000 "$TMP/heal.lock"
+run_wrapper
+[ -f "$TMP/brain_ran" ] || fail "brain did not run on stale-lock takeover"
+[ ! -d "$TMP/heal.lock" ] || fail "lock left held after stale takeover run"
+rm -f "$TMP/brain_ran" "$TMP/alerts.jsonl"
+
+# G: invalid wallclock budget -> falls back to a safe default instead of
+# disabling the hard-kill guard (codex-scan QF8)
+mk_config true
+printf '%s\n' '{"fingerprint":"demo:stale","resolved":false}' > "$TMP/alerts.jsonl"
+AGENT_OPS_CONFIG="$TMP/config.json" \
+AGENT_OPS_BRAIN_CMD="touch $TMP/brain_ran" \
+AGENT_OPS_LOCK_DIR="$TMP/heal.lock" \
+AGENT_OPS_LOG_DIR="$TMP/logs" \
+AGENT_OPS_WALLCLOCK_S="not-a-number" \
+  bash "$KIT_DIR/scripts/heal_wrapper.sh"
+[ -f "$TMP/brain_ran" ] || fail "brain did not run with invalid wallclock budget"
+grep -q "falling back to 3600s" "$TMP/logs/heal.log" || fail "no fallback WARN logged for invalid budget"
+rm -f "$TMP/brain_ran" "$TMP/alerts.jsonl"
+
+echo "SMOKE OK: kill switch (incl. fail-closed on corrupt config), IDLE gate, WORK run, single-instance lock (incl. stale takeover), wallclock budget validation"

@@ -18,7 +18,9 @@ Stdlib only. Part of agent-ops-kit.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
+import fcntl
 import json
 import os
 import tempfile
@@ -27,6 +29,26 @@ import tempfile
 def load_config(path: str) -> dict:
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
+
+
+@contextlib.contextmanager
+def _locked(alerts_path: str):
+    """Exclusive lock scoped to one alert store.
+
+    Guards the read-modify-write cycles in append_alert() and
+    resolve_fingerprint() against each other, so a scheduled watchdog run
+    appending a new alert can't race a heal loop's --resolve call and lose
+    the append (codex-scan QF7: resolve_fingerprint reads the whole file,
+    then replaces it — an append landing in that window used to vanish).
+    """
+    lock_path = alerts_path + ".lock"
+    os.makedirs(os.path.dirname(lock_path) or ".", exist_ok=True)
+    with open(lock_path, "a") as lock_fh:
+        fcntl.flock(lock_fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_fh, fcntl.LOCK_UN)
 
 
 def read_alerts(path: str) -> list[dict]:
@@ -53,26 +75,27 @@ def unresolved_fingerprints(alerts: list[dict]) -> set[str]:
 
 def append_alert(path: str, record: dict) -> None:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    with open(path, "a", encoding="utf-8") as fh:
+    with _locked(path), open(path, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def resolve_fingerprint(path: str, fingerprint: str) -> int:
     """Mark all unresolved alerts with this fingerprint as resolved (atomic rewrite)."""
-    alerts = read_alerts(path)
-    changed = 0
-    for a in alerts:
-        if a.get("fingerprint") == fingerprint and not a.get("resolved"):
-            a["resolved"] = True
-            changed += 1
-    if changed:
-        dir_ = os.path.dirname(path) or "."
-        fd, tmp = tempfile.mkstemp(dir=dir_, prefix=".alerts-")
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            for a in alerts:
-                fh.write(json.dumps(a, ensure_ascii=False) + "\n")
-        os.replace(tmp, path)
-    return changed
+    with _locked(path):
+        alerts = read_alerts(path)
+        changed = 0
+        for a in alerts:
+            if a.get("fingerprint") == fingerprint and not a.get("resolved"):
+                a["resolved"] = True
+                changed += 1
+        if changed:
+            dir_ = os.path.dirname(path) or "."
+            fd, tmp = tempfile.mkstemp(dir=dir_, prefix=".alerts-")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                for a in alerts:
+                    fh.write(json.dumps(a, ensure_ascii=False) + "\n")
+            os.replace(tmp, path)
+        return changed
 
 
 def check_jobs(cfg: dict, now: dt.datetime) -> list[dict]:
