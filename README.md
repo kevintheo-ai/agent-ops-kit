@@ -7,7 +7,7 @@ a real company: 100+ scheduled jobs operated by AI agents, supervised by a
 CEO who cannot code.
 
 Background story: *"I Can't Code. My Company Is Run by 100+ AI Agents
-Anyway."* → [LINK: case study]
+Anyway."* → [kevintheo.com](https://kevintheo.com)
 
 ## Why this exists
 
@@ -92,4 +92,4 @@ Not a framework, not a product, not affiliated with any model vendor. It's
 the scaffold I wish I'd had on day one, published as-is under MIT. Issues
 and war stories welcome.
 
-— Kevin Theo ([LinkedIn](https://www.linkedin.com/in/kevin-theobald-7946871a2) · [LINK: case study])
+— Kevin Theo ([LinkedIn](https://www.linkedin.com/in/kevin-theobald-7946871a2) · [kevintheo.com](https://kevintheo.com))
