@@ -1,13 +1,12 @@
 # agent-ops-kit
 
 **Operational guardrails for headless LLM agent loops.** The watchdog, the
-LLM-free precheck gate, a heal-loop brain template, and the staged-autonomy
-playbook — extracted as generic patterns from a production system that runs
-a real company: 100+ scheduled jobs operated by AI agents, supervised by a
-CEO who cannot code.
+LLM-free precheck gate, a heal-loop brain template and the staged-autonomy
+playbook, taken as generic patterns from the system that runs my company:
+119 background jobs, almost all of them plain scripts, run by an entrepreneur
+who doesn't write code by hand.
 
-Background story: *"I Can't Code. My Company Is Run by 100+ AI Agents
-Anyway."* → [kevintheo.com](https://kevintheo.com)
+Background story: [Why I run my company with AI agents](https://kevintheo.com/field-report/)
 
 ## Why this exists
 
