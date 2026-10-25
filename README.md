@@ -91,4 +91,4 @@ Not a framework, not a product, not affiliated with any model vendor. It's
 the scaffold I wish I'd had on day one, published as-is under MIT. Issues
 and war stories welcome.
 
-— Kevin Theo ([LinkedIn](https://www.linkedin.com/in/kevin-theobald-7946871a2) · [kevintheo.com](https://kevintheo.com))
+— Kevin Theo ([LinkedIn](https://www.linkedin.com/in/kevintheo) · [kevintheo.com](https://kevintheo.com))
