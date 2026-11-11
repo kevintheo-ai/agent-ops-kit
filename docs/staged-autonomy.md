@@ -1,53 +1,39 @@
-# Staged autonomy — the ladder
+# Staged autonomy: the ladder
 
-Autonomy is a privilege a subsystem earns with evidence, never a launch
-setting. Four rungs, one direction, and a formal review between each rung.
+An agent earns autonomy with evidence. It is never a launch setting. The usual failure is an agent that gets write access on day one and edits its own guardrails on day two. So there are four rungs, you climb them in this order, and a written review sits between every two of them.
 
-```
 shadow  ->  pilot  ->  gated  ->  auto
-(propose    (real data,  (every action  (narrow, defined
- only)       tiny scope)  needs a tap)   action class only)
-```
+
+A human decides each move and dates the decision.
 
 ## Rung definitions
 
-**Shadow.** The system runs its full loop against real inputs but executes
-nothing. Every action it *would* take is written to a proposals directory.
-You read them. Weeks of "would have been correct" build the case.
-
-**Pilot.** Real execution on a deliberately tiny, low-blast-radius slice
-(one job, one mailbox, one campaign). Everything else stays shadow.
-
-**Gated.** Full scope, but every action requires an explicit human approval
-(a button tap counts; silence never does).
-
-**Auto.** Only for a *named, closed list* of action classes that are all
-three of: safe (no data loss possible), confident (validated by a re-probe,
-not by model output), reversible (snapshot + rollback exist). Everything
-outside the list stays gated — permanently.
+- Shadow: the loop runs on real inputs and executes nothing. Every action it would take is written down as a proposal.
+- Pilot: real execution on a deliberately tiny slice. With this kit, set `mode` to `auto` and give the config one small job. In the allowed tools of the brain command, add exactly the restart commands of your safe class, nothing else. Restarts go through the job's scheduler (for example `launchctl kickstart` or `systemctl start`), never as a child process of the brain. The carve-outs are enforced by the /heal instructions and, with the default brain command, by Claude Code's tool permissions. That is not an operating-system sandbox; a brain command of your own decides its own permissions.
+- Gated: full scope, but every action needs an explicit human approval. Silence never counts as approval. With this kit, set `mode` to `shadow` and apply each proposal yourself. In shadow mode the brain's only change outside its own state files is resolving an alert whose job recovered by itself. If that check was wrong, the watchdog raises the alert again on its next run.
+- Auto: only for a named, closed list of action classes. Each class must be safe (no data loss possible), confident (validated by a re-probe, never by what the model says) and reversible (a snapshot and a rollback exist). Everything else stays gated.
 
 ## Promotion review (template)
 
-Run this review before every rung change. Write the answers down; the
-review that isn't written down didn't happen.
+Fill this in, on paper or in a file, before every rung change. A human decides and signs it.
 
-- Observation window: ____ days, ____ total cases.
-- False-alarm handling: ____ of ____ correctly dismissed (target: all).
-- Real actions: ____ proposed / ____ approved / ____ correct in hindsight.
-- Rollbacks needed: ____ (target: 0; each one gets a written post-mortem).
-- Incidents during window: ____ → each converted into a written rule? y/n
-- Kill switch tested this window (actually flipped, observed to stop)? y/n
-- Carve-out zone violation attempts: ____ (target: 0, verified from logs).
-- Decision: promote / hold / demote — by WHOM (a human), dated.
+- Subsystem and rung change: ____ to ____
+- [ ] Observation window and number of cases: ____
+- [ ] False alarms correctly dismissed: ____
+- [ ] Actions proposed: ____
+- [ ] Actions approved: ____
+- [ ] Actions correct in hindsight: ____
+- [ ] Rollbacks (target 0), each with a post-mortem: ____
+- [ ] Incidents turned into written rules: ____
+- [ ] Kill switch actually tested (date and result): ____
+- [ ] Carve-out violation attempts, checked in the logs (target 0): ____
+- Decision (promote, hold or demote): ____
+- Decided by and date: ____
 
-Real-world reference point: the newest autonomous subsystem in my own
-production setup earned its auto mode with a supervised week of 36 cases —
-17 false alarms correctly dismissed, 6 real fixes (each human-approved),
-0 rollbacks. That's the kind of receipt a promotion should have.
+## A reference point from July 2026
+
+In July 2026 my alarm investigator earned its auto mode. Before that it ran a supervised week of 36 cases: 17 false alarms correctly dismissed, 6 real fixes, each one approved by me first, and 0 rollbacks. That is one setup and one week, so take it as one data point and write your own thresholds into the review.
 
 ## Demotion is normal
 
-Any incident that survives to production demotes the subsystem one rung
-until the class of failure is structurally prevented (a test, a gate, a
-rule — not a promise). Demotion is not punishment; it's how the ladder
-stays meaningful.
+An incident that reaches production moves the subsystem one rung down. It stays there until a test, a gate or a rule prevents that class of failure. A promise to be more careful doesn't count. After that you run the promotion review again.
